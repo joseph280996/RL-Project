@@ -3,29 +3,11 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import random
-import models as models
 import math
 
-from collections import deque, namedtuple
-
-Transition = namedtuple("Transition", ("state", "action", "next_state", "reward"))
-
-
-class ReplayMemory(object):
-
-    def __init__(self, capacity):
-        self.memory = deque([], maxlen=capacity)
-
-    def push(self, *args):
-        """Save a transition"""
-        self.memory.append(Transition(*args))
-
-    def sample(self, batch_size):
-        return random.sample(self.memory, batch_size)
-
-    def __len__(self):
-        return len(self.memory)
-
+from models.tuples import *
+from models.DQN import *
+from models.ReplayMemory import *
 
 class CartPoleAgent:
     def __init__(self, 
@@ -34,7 +16,7 @@ class CartPoleAgent:
                  action_dim, 
                  device,
                  batch_size = 128,
-                 epsilon = 0.9,
+                 epsilon_start = 0.9,
                  epsilon_min = 0.05,
                  epsilon_decay = 1000,
                  tau = 0.005,
@@ -47,7 +29,7 @@ class CartPoleAgent:
 
         # Hyperparameters
         self.batch_size = batch_size
-        self.epsilon = epsilon
+        self.epsilon_start = epsilon_start
         self.epsilon_min = epsilon_min
         self.epsilon_decay = epsilon_decay
         self.tau = tau
@@ -56,8 +38,8 @@ class CartPoleAgent:
 
         self.memory = ReplayMemory(10000)
 
-        self.policy_net = models.DQN(state_dim, action_dim).to(self.device)
-        self.target_net = models.DQN(state_dim, action_dim).to(self.device)
+        self.policy_net = DQN(state_dim, action_dim).to(self.device)
+        self.target_net = DQN(state_dim, action_dim).to(self.device)
         self.target_net.load_state_dict(self.policy_net.state_dict())
 
         self.optimizer = optim.Adam(
@@ -73,7 +55,7 @@ class CartPoleAgent:
 
     def select_action(self, state):
         sample = random.random()
-        eps_threshold = self.epsilon_min + (self.epsilon - self.epsilon_min) * math.exp(
+        eps_threshold = self.epsilon_min + (self.epsilon_start - self.epsilon_min) * math.exp(
             -1.0 * self.steps_done / self.epsilon_decay
         )
 

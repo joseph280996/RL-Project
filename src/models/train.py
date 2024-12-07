@@ -1,16 +1,11 @@
 import numpy as np
 from itertools import count
-from agents import CartPoleAgent
+from models.agents import CartPoleAgent
 import torch
 from tqdm import tqdm 
 
-def train(env, agent:CartPoleAgent, device):
+def train(env, agent:CartPoleAgent, device, num_episodes):
     tr_info = {'durations': [], 'total_rewards': []}
-
-    if torch.cuda.is_available() or torch.backends.mps.is_available():
-        num_episodes = 600
-    else:
-        num_episodes = 50
 
     progress_bar = tqdm(range(num_episodes))
     pbar_info = {}
@@ -41,6 +36,9 @@ def train(env, agent:CartPoleAgent, device):
 
             # Perform one step of the optimization (on the policy network)
             agent.optimize()
+
+            # Perform policy update
+            agent.update()
             
             if done:
                 tr_info['durations'].append(t + 1)
