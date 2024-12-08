@@ -3,3 +3,4 @@ from models.agents import *
 from models.DQN import *
 from models.ReplayMemory import *
 from models.train import *
+from models.hyperparameter_search import *

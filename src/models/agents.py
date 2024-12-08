@@ -15,6 +15,7 @@ class CartPoleAgent:
                  state_dim, 
                  action_dim, 
                  device,
+                 memory_size = 10000,
                  batch_size = 128,
                  epsilon_start = 0.9,
                  epsilon_min = 0.05,
@@ -36,7 +37,7 @@ class CartPoleAgent:
         self.gamma = gamma
         self.learning_rate = learning_rate
 
-        self.memory = ReplayMemory(10000)
+        self.memory = ReplayMemory(memory_size)
 
         self.policy_net = DQN(state_dim, action_dim).to(self.device)
         self.target_net = DQN(state_dim, action_dim).to(self.device)
