@@ -1,15 +1,11 @@
-import numpy as np
 import torch
 from tqdm import tqdm 
-import statistics
 from typing import Dict
-from itertools import count
 
-from models.agents import CartPoleAgent
+from models.agents.DQL import CartPoleDQNAgent
 
-def train(env, agent: CartPoleAgent, device: str, 
+def train_DQL(env, agent: CartPoleDQNAgent, device: str, 
                             num_episodes: int,
-                            patience: int = 50,
                             n_eps_mean_for_early_stopping: int = 100,
                             target_r = 490) -> Dict:
     """
@@ -22,10 +18,8 @@ def train(env, agent: CartPoleAgent, device: str,
         verbose: Whether to show progress bar
     """
     tr_info = {'total_r': []}
-    best_avg_reward = float('-inf')
-    patience_counter = 0
     
-    progressbar = tqdm(range(num_episodes)) 
+    progressbar = tqdm(range(num_episodes))
 
     for i_episode in progressbar:
         total_reward = 0
@@ -36,6 +30,7 @@ def train(env, agent: CartPoleAgent, device: str,
         while True:
             if done:
                 tr_info['total_r'].append(total_reward)
+                progressbar.set_postfix({"total_r": total_reward})
                 break
 
             action = agent.select_action(state)
@@ -52,24 +47,5 @@ def train(env, agent: CartPoleAgent, device: str,
             agent.optimize()
             agent.update()
 
-        if len(tr_info["total_r"]) >= n_eps_mean_for_early_stopping:
-            mean = np.mean(tr_info['total_r'][-n_eps_mean_for_early_stopping:])
-
-            if mean >= target_r:
-                progressbar.set_postfix({
-                    'episode_id': i_episode,
-                    'total_r': total_reward,
-                })
-
-                progressbar.close()
-                return tr_info
-            
-
-        progressbar.set_postfix({
-            'episode_id': i_episode,
-            'total_r': total_reward,
-        })
-
-    progressbar.close()
-
     return tr_info
+

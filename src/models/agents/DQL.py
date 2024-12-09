@@ -1,15 +1,14 @@
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import random
 import math
 
-from models.tuples import *
-from models.DQN import *
-from models.ReplayMemory import *
+from models.tuples import Transition
+from models.networks.DQN import DQN
+from models.ReplayMemory import ReplayMemory
 
-class CartPoleAgent:
+class CartPoleDQNAgent:
     def __init__(self, 
                  env, 
                  state_dim, 
@@ -101,6 +100,7 @@ class CartPoleAgent:
         next_state_values = torch.zeros(self.batch_size, device=self.device)
         with torch.no_grad():
             next_state_values[non_final_mask] = self.target_net(non_final_next_states).max(1).values
+
         # Compute the expected Q values
         expected_state_action_values = (next_state_values * self.gamma) + reward_batch
 
