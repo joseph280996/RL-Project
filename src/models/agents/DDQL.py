@@ -38,20 +38,20 @@ class CartPoleDDQNAgent:
 
         self.memory = ReplayMemory(memory_size)
 
+        # Initialize both sets of networks
         self.policy_net = DQN(state_dim, action_dim).to(self.device)
         self.target_net = DQN(state_dim, action_dim).to(self.device)
+        
+        # Initialize target networks
         self.target_net.load_state_dict(self.policy_net.state_dict())
 
+        # Separate optimizers for each network
         self.optimizer = optim.Adam(
             self.policy_net.parameters(), lr=self.learning_rate, amsgrad=True
         )
-        self.criterion = nn.MSELoss()
 
+        self.criterion = nn.SmoothL1Loss()
         self.steps_done = 0
-
-    def memorize_observation(self, state, action, next_state, reward):
-        self.memory.push(state, action, next_state, reward)
-
 
     def select_action(self, state):
         eps_threshold = self.epsilon_min + (self.epsilon_start - self.epsilon_min) * math.exp(
@@ -64,20 +64,21 @@ class CartPoleDDQNAgent:
                 [[self.env.action_space.sample()]], device=self.device, dtype=torch.long
             )
 
+        # Randomly choose which network to use for action selection
+
         with torch.no_grad():
             return self.policy_net(state).max(1).indices.view(1, 1)
+
+    def memorize_observation(self, state, action, next_state, reward):
+        self.memory.push(state, action, next_state, reward)
 
     def optimize(self):
         if len(self.memory) < self.batch_size:
             return
+            
         transitions = self.memory.sample(self.batch_size)
-        # Transpose the batch (see https://stackoverflow.com/a/19343/3343043 for
-        # detailed explanation). This converts batch-array of Transitions
-        # to Transition of batch-arrays.
         batch = Transition(*zip(*transitions))
 
-        # Compute a mask of non-final states and concatenate the batch elements
-        # (a final state would've been the one after which simulation ended)
         non_final_mask = torch.tensor(tuple(map(lambda s: s is not None,
                                             batch.next_state)), device=self.device, dtype=torch.bool)
         non_final_next_states = torch.cat([s for s in batch.next_state
@@ -86,32 +87,32 @@ class CartPoleDDQNAgent:
         action_batch = torch.cat(batch.action)
         reward_batch = torch.cat(batch.reward)
 
-        # Compute Q(s_t, a) - the model computes Q(s_t), then we select the
-        # columns of actions taken. These are the actions which would've been taken
-        # for each batch state according to policy_net
+        # Get current Q values from policy network
         state_action_values = self.policy_net(state_batch).gather(1, action_batch)
 
-        # Double DQN update
         next_state_values = torch.zeros(self.batch_size, device=self.device)
         with torch.no_grad():
-            # Use policy_net to SELECT action that maximizes Q
+            # Use online network to SELECT action
             next_actions = self.policy_net(non_final_next_states).max(1)[1].unsqueeze(1)
-            # Use target_net to EVALUATE the Q-value of that action
+            # Use target network to EVALUATE action
             next_state_values[non_final_mask] = self.target_net(non_final_next_states).gather(1, next_actions).squeeze()
 
-        # Compute the expected Q values
+        # Compute expected Q values
         expected_state_action_values = (next_state_values * self.gamma) + reward_batch
 
-        # Compute Huber loss
-        criterion = nn.SmoothL1Loss()
-        loss = criterion(state_action_values, expected_state_action_values.unsqueeze(1))
-
-        # Optimize the model
+        # Compute loss and optimize
+        loss = self.criterion(state_action_values, expected_state_action_values.unsqueeze(1))
         self.optimizer.zero_grad()
         loss.backward()
-        # In-place gradient clipping
         torch.nn.utils.clip_grad_value_(self.policy_net.parameters(), 100)
-        self.optimizer.step() 
+        self.optimizer.step()
+
+        # Soft update of target network
+        target_net_state_dict = self.target_net.state_dict()
+        policy_net_state_dict = self.policy_net.state_dict()
+        for key in policy_net_state_dict:
+            target_net_state_dict[key] = policy_net_state_dict[key] * self.tau + target_net_state_dict[key] * (1 - self.tau)
+        self.target_net.load_state_dict(target_net_state_dict)
 
     def update(self):
         target_net_state_dict = self.target_net.state_dict()

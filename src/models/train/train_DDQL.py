@@ -45,7 +45,6 @@ def train_DDQL(env, agent: CartPoleDDQNAgent, device: str,
             agent.memorize_observation(state, action, next_state, reward)
             state = next_state
             agent.optimize()
-            agent.update()
 
     return tr_info
 

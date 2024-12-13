@@ -45,7 +45,7 @@ class CartPoleDQNAgent:
         self.optimizer = optim.Adam(
             self.policy_net.parameters(), lr=self.learning_rate, amsgrad=True
         )
-        self.criterion = nn.MSELoss()
+        self.criterion = nn.SmoothL1Loss()
 
         self.steps_done = 0
 
@@ -105,8 +105,7 @@ class CartPoleDQNAgent:
         expected_state_action_values = (next_state_values * self.gamma) + reward_batch
 
         # Compute Huber loss
-        criterion = nn.SmoothL1Loss()
-        loss = criterion(state_action_values, expected_state_action_values.unsqueeze(1))
+        loss = self.criterion(state_action_values, expected_state_action_values.unsqueeze(1))
 
         # Optimize the model
         self.optimizer.zero_grad()
