@@ -114,11 +114,11 @@ class RayTuneDDQN:
         df = analysis.get_dataframe()
         
         # First, filter for trials with top 25% moving average reward
-        reward_threshold = df['moving_average_reward'].quantile(0.75)
-        top_performers = df[df['moving_average_reward'] >= reward_threshold]
+        reward_threshold = df['stability_score'].quantile(0.75)
+        top_performers = df[df['stability_score'] >= reward_threshold]
         
         # Among these top performers, find the one with the best stability score
-        best_trial = top_performers.loc[top_performers['stability_score'].idxmax()]
+        best_trial = top_performers.loc[top_performers['moving_average_reward'].idxmax()]
         
         print("\nBest Trial Performance:")
         print(f"Moving Average Reward (last 100 episodes): {best_trial['moving_average_reward']:.2f}")
