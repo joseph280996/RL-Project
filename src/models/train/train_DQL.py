@@ -5,17 +5,15 @@ from typing import Dict
 from models.agents.DQL import CartPoleDQNAgent
 
 def train_DQL(env, agent: CartPoleDQNAgent, device: str, 
-                            num_episodes: int,
-                            n_eps_mean_for_early_stopping: int = 100,
-                            target_r = 490) -> Dict:
+                            num_episodes: int) -> Dict:
     """
     Train the agent with early stopping based on average reward over a window.
     
     Args:
-        patience: Number of episodes to wait for improvement before stopping
-        window_size: Size of window for calculating moving average
-        target_reward: Target average reward to consider training successful
-        verbose: Whether to show progress bar
+        env: The environment to train the agent on.
+        agent: The agent to train (default: CartPoleDQNAgent).
+        device: The Pytorch device for training acceleration ('cpu', 'cuda' or 'mps').
+        num_episodes: The number of episodes to train the agent for.
     """
     tr_info = {'total_r': []}
     

@@ -213,8 +213,6 @@ dependencies:
   - python-kaleido==0.2.1=pyhd8ed1ab_0
   - python==3.10.13=h2469fbe_1_cpython
   - python_abi==3.10=4_cp310
-  - pytorch==2.4.0=cpu_generic_py310h348f5f6_1
-  - pytorchcv==0.0.71=pyhd8ed1ab_0
   - pytz==2023.3.post1=py310hca03da5_0
   - pyyaml==6.0.1=py310h80987f9_0
   - pyzmq==23.2.0=py310hc377ac9_0
@@ -249,7 +247,7 @@ dependencies:
   - tokenizers==0.15.1=py310h3dd52b7_0
   - toml==0.10.2=pyhd3eb1b0_0
   - torchinfo==1.8.0=pyhd8ed1ab_0
-  - torchvision==0.15.2=cpu_py310h31aa045_0
+  - torchvision==0.19.0
   - tornado==6.3.3=py310h80987f9_0
   - tqdm==4.66.5=pyhd8ed1ab_0
   - traitlets==5.7.1=py310hca03da5_0
@@ -273,4 +271,6 @@ dependencies:
   - zstd==1.5.5=hd90d995_0
   - jupytext
   - gymnasium
+  - torchaudio
+  - lapack
 prefix: /Users/joseph280996/miniconda3/envs/cs138_env

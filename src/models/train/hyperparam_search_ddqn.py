@@ -71,14 +71,14 @@ class RayTuneDDQN:
 
     def get_config_space(self):
         config = {
-            "memory_size": tune.choice([10000, 20000, 50000]),  # Increased upper range
-            "batch_size": tune.choice([32, 64, 128]),  # Added smaller batch size
-            "epsilon_start": tune.uniform(0.95, 1.0),  # Narrowed to ensure good initial exploration
-            "epsilon_min": tune.loguniform(1e-3, 5e-2),  # Log scale for better resolution
-            "epsilon_decay": tune.qlograndint(1000, 10000, q=500),  # Log scale with quantization
-            "tau": tune.loguniform(1e-3, 5e-2),  # Wider range for target network updates
-            "gamma": tune.uniform(0.97, 0.999),  # Narrowed to focus on long-term rewards
-            "learning_rate": tune.loguniform(1e-4, 5e-3),  # Slightly wider range
+            "memory_size": tune.choice([10000, 20000, 50000]),  
+            "batch_size": tune.choice([32, 64, 128]),  
+            "epsilon_start": tune.uniform(0.95, 1.0),  
+            "epsilon_min": tune.loguniform(1e-3, 5e-2),  
+            "epsilon_decay": tune.qlograndint(1000, 10000, q=500),  
+            "tau": tune.loguniform(1e-3, 5e-2),  
+            "gamma": tune.uniform(0.97, 0.999),  
+            "learning_rate": tune.loguniform(1e-4, 5e-3),  
         }
         return config
 
@@ -113,11 +113,11 @@ class RayTuneDDQN:
         # Convert the ResultGrid to a DataFrame
         df = analysis.get_dataframe()
         
-        # First, filter for trials with top 25% moving average reward
+        # First, filter for trials with top 25% stable config
         reward_threshold = df['stability_score'].quantile(0.75)
         top_performers = df[df['stability_score'] >= reward_threshold]
         
-        # Among these top performers, find the one with the best stability score
+        # Among these top performers, find the one with the best moving average
         best_trial = top_performers.loc[top_performers['moving_average_reward'].idxmax()]
         
         print("\nBest Trial Performance:")
